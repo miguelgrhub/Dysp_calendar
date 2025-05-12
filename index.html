@@ -3,26 +3,50 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1.0" />
-  <title>Selector de Fechas ‒ Nexus Tours</title>
+  <title>Selector de rango – Nexus Tours</title>
+
+  <!-- Flatpickr CSS -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css"/>
+
   <style>
-    body { font-family: sans-serif; max-width: 400px; margin: 2rem auto; }
-    label { display: block; margin-top: 1rem; }
-    input, button { width: 100%; padding: .5rem; margin-top: .5rem; }
-    button { cursor: pointer; }
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      font-family: sans-serif;
+      padding: 2rem;
+    }
+    #rangePicker {
+      width: 280px;
+      padding: 0.5rem;
+      font-size: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      text-align: center;
+      cursor: pointer;
+    }
+    #go {
+      margin-top: 1rem;
+      padding: 0.5rem 1.5rem;
+      font-size: 1rem;
+      border: none;
+      border-radius: 4px;
+      background: #007bff;
+      color: white;
+      cursor: pointer;
+    }
+    #go:active { background: #0056b3; }
   </style>
 </head>
 <body>
-  <h1>Selecciona tus fechas</h1>
-  <label for="start">Fecha de inicio:</label>
-  <input type="date" id="start" />
 
-  <label for="end">Fecha de fin:</label>
-  <input type="date" id="end" />
-
+  <input id="rangePicker" placeholder="Selecciona rango de fechas" readonly />
   <button id="go">Done</button>
 
+  <!-- Flatpickr JS -->
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
   <script>
-    // --- VARIABLES FIJAS DEL TOUR ---
+    // --- VARIABLES FIJAS ---
     const productID     = '498';
     const paxs          = '10';
     const productType   = 'TKT';
@@ -30,28 +54,33 @@
     const prov          = 'SGN';
     const accion        = 'searchservices';
 
-    document.getElementById('go').addEventListener('click', () => {
-      const start = document.getElementById('start').value;
-      const end   = document.getElementById('end').value;
+    // Inicializa flatpickr en modo range
+    flatpickr("#rangePicker", {
+      mode: "range",
+      dateFormat: "Y-m-d",
+      locale: {
+        firstDayOfWeek: 1 // lunes
+      }
+    });
 
-      if (!start || !end) {
-        return alert('Por favor selecciona ambas fechas.');
+    document.getElementById('go').addEventListener('click', () => {
+      const val = document.getElementById('rangePicker').value;
+      if (!val || !val.includes(' to ')) {
+        return alert('Por favor selecciona un rango de fechas.');
       }
 
-      // Formatea fechas en AAAA-MM-DD si el navegador no lo hace
-      const format = d => new Date(d).toISOString().slice(0,10);
-
-      const url = `https://www.nexustours.com/services/details.aspx`
+      const [start, end] = val.split(' to ');
+      const url =
+        `https://www.nexustours.com/services/details.aspx`
         + `?productID=${productID}`
         + `&paxs=${paxs}`
         + `&productType=${productType}`
         + `&destinationID=${destinationID}`
-        + `&startdate=${format(start)}`
-        + `&enddate=${format(end)}`
+        + `&startdate=${start}`
+        + `&enddate=${end}`
         + `&prov=${prov}`
         + `&accion=${accion}`;
 
-      // Abre el link en la misma pestaña (o cambia a window.open para nueva pestaña)
       window.location.href = url;
     });
   </script>
