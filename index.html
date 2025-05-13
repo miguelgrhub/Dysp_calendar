@@ -3,23 +3,25 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1.0" />
-  <title>Selector de rango – Nexus Tours</title>
-
-  <!-- Flatpickr CSS -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css"/>
+  <title>Selector de Fecha – Nexus Tours</title>
 
   <style>
     body {
       display: flex;
       flex-direction: column;
       align-items: center;
-      font-family: sans-serif;
+      font-family: Arial, sans-serif;
       padding: 2rem;
+      background: #f9f9f9;
+    }
+    h1 {
+      color: #ff6600;
+      margin-bottom: 1.5rem;
     }
     .pax-container {
       display: flex;
       gap: 1rem;
-      margin-bottom: 1rem;
+      margin-bottom: 1.5rem;
       flex-wrap: wrap;
       justify-content: center;
     }
@@ -31,32 +33,41 @@
     .field label {
       font-size: 0.9rem;
       margin-bottom: 0.3rem;
+      color: #333;
     }
     select,
-    #rangePicker {
-      padding: 0.4rem;
+    #datePicker {
+      padding: 0.5rem;
       font-size: 1rem;
-      border: 1px solid #ccc;
-      border-radius: 4px;
+      border: 2px solid #ffcc99;
+      border-radius: 5px;
       width: 100%;
       box-sizing: border-box;
       text-align: center;
-      cursor: pointer;
+      background: #fff;
+      color: #333;
+    }
+    select:focus,
+    #datePicker:focus {
+      border-color: #ff6600;
+      outline: none;
     }
     #go {
-      margin-top: 1.5rem;
-      padding: 0.6rem 1.8rem;
+      margin-top: 2rem;
+      padding: 0.8rem 2rem;
       font-size: 1rem;
       border: none;
-      border-radius: 4px;
-      background: #007bff;
+      border-radius: 5px;
+      background: #ff6600;
       color: white;
       cursor: pointer;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     }
-    #go:active { background: #0056b3; }
+    #go:active { background: #e65500; }
   </style>
 </head>
 <body>
+  <h1>Selecciona tu fecha</h1>
 
   <div class="pax-container">
     <div class="field">
@@ -95,33 +106,24 @@
 
   <div id="childAgesContainer" class="pax-container"></div>
 
-  <input id="rangePicker" placeholder="Selecciona rango de fechas" readonly />
+  <div class="field" style="width: 280px; margin-bottom: 1.5rem;">
+    <label for="datePicker">Fecha</label>
+    <input type="date" id="datePicker" />
+  </div>
 
   <button id="go">Done</button>
 
-  <!-- Flatpickr JS -->
-  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
   <script>
     // — CONSTANTES FIJAS —
-    const productType = 'TKT';
-    const prov        = 'SGN';
-    const accion      = 'searchservices';
+    const productType   = 'TKT';
+    const prov          = 'SGN';
+    const accion        = 'searchservices';
 
     // Lee productID y destinationID desde la query string
     const params        = new URLSearchParams(window.location.search);
-    const productID     = params.get('productID') 
-                          || prompt('Indica el productID, ej: ?productID=498');
-    const destinationID = params.get('destinationID')
-                          || prompt('Indica el destinationID, ej: ?destinationID=108913');
+    const productID     = params.get('productID')     || prompt('Indica productID, ej: ?productID=498');
+    const destinationID = params.get('destinationID') || prompt('Indica destinationID, ej: ?destinationID=108913');
 
-    // Inicializa Flatpickr en modo rango
-    flatpickr("#rangePicker", {
-      mode: "range",
-      dateFormat: "Y-m-d",
-      locale: { firstDayOfWeek: 1 }
-    });
-
-    // Genera selects de edad al cambiar número de niños
     document.getElementById('children').addEventListener('change', e => {
       const n = +e.target.value;
       const cont = document.getElementById('childAgesContainer');
@@ -142,19 +144,18 @@
     });
 
     document.getElementById('go').addEventListener('click', () => {
-      // 1) Fechas
-      const val = document.getElementById('rangePicker').value;
-      if (!val.includes(' to ')) {
-        return alert('Selecciona un rango de fechas.');
-      }
-      const [startDate, endDate] = val.split(' to ');
+      // Fecha simple (un solo día)
+      const date = document.getElementById('datePicker').value;
+      if (!date) return alert('Selecciona una fecha.');
+      const startDate = date;
+      const endDate   = date;
 
-      // 2) Pax
+      // Pax
       const adults   = document.getElementById('adults').value;
       const children = document.getElementById('children').value;
-      const paxs     = adults + children;  // concatena "1" + "0" => "10"
+      const paxs     = String(Number(adults) + Number(children));
 
-      // 3) Edades de niños
+      // Edades
       let ages = '';
       if (Number(children) > 0) {
         ages = Array.from(document.querySelectorAll('.child-age'))
@@ -162,7 +163,7 @@
           .join('');
       }
 
-      // 4) Construye URL
+      // Construye URL
       let url =
         `https://www.nexustours.com/services/details.aspx`
         + `?productID=${productID}`
@@ -174,11 +175,8 @@
         + `&prov=${prov}`
         + `&accion=${accion}`;
 
-      if (ages) {
-        url += `&ages=${ages}`;
-      }
+      if (ages) url += `&ages=${ages}`;
 
-      // 5) Redirige
       window.location.href = url;
     });
   </script>
