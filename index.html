@@ -32,7 +32,7 @@
       font-size: 0.9rem;
       margin-bottom: 0.3rem;
     }
-    select, 
+    select,
     #rangePicker {
       padding: 0.4rem;
       font-size: 1rem;
@@ -103,11 +103,15 @@
   <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
   <script>
     // — CONSTANTES FIJAS —
-    const productID     = '498';
     const productType   = 'TKT';
     const destinationID = '108913';
     const prov          = 'SGN';
     const accion        = 'searchservices';
+
+    // Lee productID desde la query string: ?productID=498
+    const params    = new URLSearchParams(window.location.search);
+    const productID = params.get('productID') 
+      || prompt('Por favor indica el productID en la URL, ej: ?productID=498');
 
     // Inicializa Flatpickr en modo rango
     flatpickr("#rangePicker", {
@@ -127,7 +131,7 @@
         fld.innerHTML = `
           <label for="age${i}">Child ${i} Age</label>
           <select id="age${i}" class="child-age">
-            ${Array.from({length:18},(_,age)=>
+            ${Array.from({length:18}, (_, age) =>
               `<option value="${age}">${age}</option>`
             ).join('')}
           </select>
@@ -144,20 +148,20 @@
       }
       const [startDate, endDate] = val.split(' to ');
 
-      // 2) Pax (concatenación para paxs)
+      // 2) Pax
       const adults   = document.getElementById('adults').value;
       const children = document.getElementById('children').value;
-      const paxs     = adults + children;  // "10" por defecto
+      const paxs     = adults + children;  // ej. "10" por defecto
 
-      // 3) Edades de los niños (dos dígitos cada uno)
+      // 3) Edades de niños
       let ages = '';
       if (Number(children) > 0) {
-        ages = Array.from(
-          document.querySelectorAll('.child-age')
-        ).map(s => s.value.padStart(2,'0')).join('');  // e.g. "0505"
+        ages = Array.from(document.querySelectorAll('.child-age'))
+          .map(s => s.value.padStart(2, '0'))
+          .join('');
       }
 
-      // 4) Construye URL con detalles.aspx + parámetro ages
+      // 4) Construye URL
       let url =
         `https://www.nexustours.com/services/details.aspx`
         + `?productID=${productID}`
