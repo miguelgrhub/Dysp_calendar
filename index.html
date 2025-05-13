@@ -62,9 +62,8 @@
     <div class="field">
       <label for="adults">Adults (18+)</label>
       <select id="adults">
-        <!-- Opciones 1–10 -->
-        <option value="1">1</option>
-        <option value="2" selected>2</option>
+        <option value="1" selected>1</option>
+        <option value="2">2</option>
         <option value="3">3</option>
         <option value="4">4</option>
         <option value="5">5</option>
@@ -79,10 +78,9 @@
     <div class="field">
       <label for="children">Children (0–17)</label>
       <select id="children">
-        <!-- Opciones 0–10 -->
-        <option value="0">0</option>
+        <option value="0" selected>0</option>
         <option value="1">1</option>
-        <option value="2" selected>2</option>
+        <option value="2">2</option>
         <option value="3">3</option>
         <option value="4">4</option>
         <option value="5">5</option>
@@ -105,19 +103,20 @@
   <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
   <script>
     // — CONSTANTES FIJAS —
-    const destinationID    = '108913';
-    const nationality      = 'US';
-    const accion           = 'searchservices';
-    const appendHashParams = 'serviceClassFilter%3DMatchAll';
+    const productID     = '498';
+    const productType   = 'TKT';
+    const destinationID = '108913';
+    const prov          = 'SGN';
+    const accion        = 'searchservices';
 
-    // Inicializa flatpickr en modo rango
+    // Inicializa Flatpickr en modo rango
     flatpickr("#rangePicker", {
       mode: "range",
       dateFormat: "Y-m-d",
       locale: { firstDayOfWeek: 1 }
     });
 
-    // Cuando cambian los niños, crea selects de edad
+    // Genera selects de edad al cambiar número de niños
     document.getElementById('children').addEventListener('change', e => {
       const n = +e.target.value;
       const cont = document.getElementById('childAgesContainer');
@@ -128,7 +127,9 @@
         fld.innerHTML = `
           <label for="age${i}">Child ${i} Age</label>
           <select id="age${i}" class="child-age">
-            ${Array.from({length:18},(_,age)=>`<option value="${age}">${age}</option>`).join('')}
+            ${Array.from({length:18},(_,age)=>
+              `<option value="${age}">${age}</option>`
+            ).join('')}
           </select>
         `;
         cont.appendChild(fld);
@@ -138,30 +139,40 @@
     document.getElementById('go').addEventListener('click', () => {
       // 1) Fechas
       const val = document.getElementById('rangePicker').value;
-      if (!val.includes(' to ')) return alert('Selecciona un rango de fechas.');
+      if (!val.includes(' to ')) {
+        return alert('Selecciona un rango de fechas.');
+      }
       const [startDate, endDate] = val.split(' to ');
 
       // 2) Pax
       const adults   = document.getElementById('adults').value;
       const children = document.getElementById('children').value;
-      const paxs     = adults + children;  // "2" + "2" => "22"
+      const paxs     = String(Number(adults) + Number(children));
 
-      // 3) Edades de los niños
-      const ages = Array.from(document.querySelectorAll('.child-age'))
-        .map(s => s.value.padStart(0,'0'))
-        .join('');  // "0505" por ejemplo
+      // 3) Edades (solo si hay niños)
+      let agesParam = '';
+      if (Number(children) > 0) {
+        const ages = Array.from(
+          document.querySelectorAll('.child-age')
+        ).map(s => s.value.padStart(2,'0'))
+         .join('');
+        agesParam = `&ages=${ages}`;
+      }
 
       // 4) Construye URL
       const url =
-        `https://www.nexustours.com/services/results.aspx`
-        + `?destinationID=${destinationID}`
-        + `&nationality=${nationality}`
-        + (ages? `&ages=${ages}` : '')
-        + `&endDate=${endDate}`
+        `https://www.nexustours.com/services/details.aspx`
+        + `?productID=${productID}`
         + `&paxs=${paxs}`
+        + `&productType=${productType}`
+        + `&destinationID=${destinationID}`
+        + `&startdate=${startDate}`
+        + `&enddate=${endDate}`
+        + `&prov=${prov}`
         + `&accion=${accion}`
-        + `&startDate=${startDate}`
-        + `&appendHashParams=${appendHashParams}`;
+        + `&adults=${adults}`
+        + `&children=${children}`
+        + agesParam;
 
       // 5) Redirige
       window.location.href = url;
