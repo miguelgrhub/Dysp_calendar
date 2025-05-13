@@ -144,23 +144,21 @@
       }
       const [startDate, endDate] = val.split(' to ');
 
-      // 2) Pax
+      // 2) Pax (concatenación para paxs)
       const adults   = document.getElementById('adults').value;
       const children = document.getElementById('children').value;
-      const paxs     = String(Number(adults) + Number(children));
+      const paxs     = adults + children;  // "10" por defecto
 
-      // 3) Edades (solo si hay niños)
-      let agesParam = '';
+      // 3) Edades de los niños (dos dígitos cada uno)
+      let ages = '';
       if (Number(children) > 0) {
-        const ages = Array.from(
+        ages = Array.from(
           document.querySelectorAll('.child-age')
-        ).map(s => s.value.padStart(2,'0'))
-         .join('');
-        agesParam = `&ages=${ages}`;
+        ).map(s => s.value.padStart(2,'0')).join('');  // e.g. "0505"
       }
 
-      // 4) Construye URL
-      const url =
+      // 4) Construye URL con detalles.aspx + parámetro ages
+      let url =
         `https://www.nexustours.com/services/details.aspx`
         + `?productID=${productID}`
         + `&paxs=${paxs}`
@@ -169,10 +167,11 @@
         + `&startdate=${startDate}`
         + `&enddate=${endDate}`
         + `&prov=${prov}`
-        + `&accion=${accion}`
-        + `&adults=${adults}`
-        + `&children=${children}`
-        + agesParam;
+        + `&accion=${accion}`;
+
+      if (ages) {
+        url += `&ages=${ages}`;
+      }
 
       // 5) Redirige
       window.location.href = url;
