@@ -119,7 +119,7 @@
     const prov          = 'SGN';
     const accion        = 'searchservices';
 
-    // Lee productID y destinationID desde la query string
+    // Lee parametros desde query string
     const params        = new URLSearchParams(window.location.search);
     const productID     = params.get('productID')     || prompt('Indica productID, ej: ?productID=498');
     const destinationID = params.get('destinationID') || prompt('Indica destinationID, ej: ?destinationID=108913');
@@ -144,18 +144,17 @@
     });
 
     document.getElementById('go').addEventListener('click', () => {
-      // Fecha simple (un solo día)
+      // 1) Fecha simple (un solo día)
       const date = document.getElementById('datePicker').value;
       if (!date) return alert('Selecciona una fecha.');
       const startDate = date;
-      const endDate   = date;
 
-      // Pax
+      // 2) Pax
       const adults   = document.getElementById('adults').value;
       const children = document.getElementById('children').value;
       const paxs     = String(Number(adults) + Number(children));
 
-      // Edades
+      // 3) Edades
       let ages = '';
       if (Number(children) > 0) {
         ages = Array.from(document.querySelectorAll('.child-age'))
@@ -163,7 +162,7 @@
           .join('');
       }
 
-      // Construye URL
+      // 4) Construye URL sin enddate
       let url =
         `https://www.nexustours.com/services/details.aspx`
         + `?productID=${productID}`
@@ -171,7 +170,6 @@
         + `&productType=${productType}`
         + `&destinationID=${destinationID}`
         + `&startdate=${startDate}`
-        + `&enddate=${endDate}`
         + `&prov=${prov}`
         + `&accion=${accion}`;
 
