@@ -16,18 +16,26 @@
       font-family: sans-serif;
       padding: 2rem;
     }
-    #rangePicker {
+    .field {
+      margin-bottom: 1rem;
       width: 280px;
-      padding: 0.5rem;
+    }
+    .field label {
+      display: block;
+      margin-bottom: .3rem;
+      font-size: .9rem;
+    }
+    .field select,
+    #rangePicker {
+      width: 100%;
+      padding: .5rem;
       font-size: 1rem;
       border: 1px solid #ccc;
       border-radius: 4px;
-      text-align: center;
-      cursor: pointer;
     }
     #go {
-      margin-top: 1rem;
-      padding: 0.5rem 1.5rem;
+      margin-top: 1.5rem;
+      padding: .6rem 1.8rem;
       font-size: 1rem;
       border: none;
       border-radius: 4px;
@@ -36,50 +44,100 @@
       cursor: pointer;
     }
     #go:active { background: #0056b3; }
+    #childAgesContainer .field {
+      margin-bottom: .5rem;
+    }
   </style>
 </head>
 <body>
 
+  <div class="field">
+    <label for="adults">Adults (18+)</label>
+    <select id="adults">
+      <!-- 1 a 10 adultos -->
+      ${[...Array(10)].map((_,i)=>`<option value="${i+1}">${i+1}</option>`).join('')}
+    </select>
+  </div>
+
+  <div class="field">
+    <label for="children">Children (0-17)</label>
+    <select id="children">
+      <!-- 0 a 10 niños -->
+      ${[...Array(11)].map((_,i)=>`<option value="${i}">${i}</option>`).join('')}
+    </select>
+  </div>
+
+  <div id="childAgesContainer"></div>
+
   <input id="rangePicker" placeholder="Selecciona rango de fechas" readonly />
+
   <button id="go">Done</button>
 
   <!-- Flatpickr JS -->
   <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
   <script>
-    // --- VARIABLES FIJAS ---
-    const productID     = '498';
-    const paxs          = '10';
-    const productType   = 'TKT';
-    const destinationID = '108913';
-    const prov          = 'SGN';
-    const accion        = 'searchservices';
+    // --- CONSTANTES FIJAS ---
+    const productID        = '498';
+    const destinationID    = '108913';
+    const accion           = 'searchservices';
+    const nationality      = 'US';
+    const appendHashParams = 'serviceClassFilter%3DMatchAll';
 
-    // Inicializa flatpickr en modo range
+    // Inicializa calendario rango
     flatpickr("#rangePicker", {
       mode: "range",
       dateFormat: "Y-m-d",
-      locale: {
-        firstDayOfWeek: 1 // lunes
+      locale: { firstDayOfWeek: 1 }
+    });
+
+    // Al cambiar #children, renderiza selects de edades
+    document.getElementById('children').addEventListener('change', e => {
+      const n = +e.target.value;
+      const container = document.getElementById('childAgesContainer');
+      container.innerHTML = '';
+      for (let i = 1; i <= n; i++) {
+        const field = document.createElement('div');
+        field.className = 'field';
+        field.innerHTML = `
+          <label>Child ${i} Age</label>
+          <select class="child-age">
+            ${[...Array(18)].map((_,age)=>`<option value="${age}">${age}</option>`).join('')}
+          </select>
+        `;
+        container.appendChild(field);
       }
     });
 
     document.getElementById('go').addEventListener('click', () => {
+      // fechas
       const val = document.getElementById('rangePicker').value;
-      if (!val || !val.includes(' to ')) {
-        return alert('Por favor selecciona un rango de fechas.');
+      if (!val.includes(' to ')) {
+        return alert('Selecciona un rango de fechas.');
       }
+      const [startDate, endDate] = val.split(' to ');
 
-      const [start, end] = val.split(' to ');
-      const url =
-        `https://www.nexustours.com/services/details.aspx`
-        + `?productID=${productID}`
+      // pax
+      const adults  = document.getElementById('adults').value;
+      const children = document.getElementById('children').value;
+      const paxs = adults + children;            // e.g. "2" + "2" => "22"
+
+      // edades
+      const agesSelects = Array.from(document.querySelectorAll('.child-age'));
+      const ages = agesSelects
+        .map(s => s.value.padStart(2,'0'))       // ["05","05",...]
+        .join('');                               // "0505..."
+      
+      // construye URL
+      const url = 
+        `https://www.nexustours.com/services/results.aspx`
+        + `?destinationID=${destinationID}`
+        + `&nationality=${nationality}`
+        + (ages? `&ages=${ages}` : '')
+        + `&endDate=${endDate}`
         + `&paxs=${paxs}`
-        + `&productType=${productType}`
-        + `&destinationID=${destinationID}`
-        + `&startdate=${start}`
-        + `&enddate=${end}`
-        + `&prov=${prov}`
-        + `&accion=${accion}`;
+        + `&accion=${accion}`
+        + `&startDate=${startDate}`
+        + `&appendHashParams=${appendHashParams}`;
 
       window.location.href = url;
     });
