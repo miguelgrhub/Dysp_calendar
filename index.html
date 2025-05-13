@@ -4,6 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Nexus Tours – Date Picker</title>
+  <!-- Flatpickr CSS -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" />
   <style>
     body {
       margin: 0;
@@ -18,28 +20,29 @@
     h1 {
       color: #ff6600;
       margin-bottom: 2rem;
+      font-size: 1.8rem;
     }
     .container {
       background: #fff;
       padding: 2rem;
       border-radius: 8px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
       width: 100%;
       max-width: 400px;
       box-sizing: border-box;
     }
     .field {
-      margin-bottom: 1.2rem;
+      margin-bottom: 1.5rem;
       display: flex;
       flex-direction: column;
     }
     .field label {
       font-size: 0.9rem;
-      margin-bottom: 0.4rem;
+      margin-bottom: 0.5rem;
     }
     .field select,
-    .field input[type="date"] {
-      padding: 0.6rem;
+    .field input[type="text"] {
+      padding: 0.8rem;
       font-size: 1rem;
       border: 2px solid #ffcc99;
       border-radius: 5px;
@@ -49,8 +52,12 @@
       transition: border-color 0.2s;
     }
     .field select:focus,
-    .field input[type="date"]:focus {
+    .field input[type="text"]:focus {
       border-color: #ff6600;
+    }
+    .flatpickr-calendar {
+      font-family: 'Segoe UI', sans-serif;
+      border: 2px solid #ffcc99;
     }
     #go {
       width: 100%;
@@ -64,9 +71,6 @@
       transition: background 0.2s;
     }
     #go:hover { background: #e65500; }
-    #childAgesContainer .field {
-      width: 100%;
-    }
     .debug {
       margin-top: 1rem;
       font-size: 0.8rem;
@@ -80,7 +84,7 @@
   <div class="container">
     <div class="field">
       <label for="datePicker">Date</label>
-      <input type="date" id="datePicker" />
+      <input type="text" id="datePicker" placeholder="Pick a date" readonly />
     </div>
     <div class="field">
       <label for="adults">Adults (18+)</label>
@@ -98,7 +102,7 @@
       </select>
     </div>
     <div class="field">
-      <label for="children">Children (0–17)</label>
+      <label for="children">Children (0–17)</n      ></label>
       <select id="children">
         <option value="0" selected>0</option>
         <option value="1">1</option>
@@ -114,11 +118,12 @@
       </select>
     </div>
     <div id="childAgesContainer"></div>
-
     <button id="go">Done</button>
     <div id="debugUrl" class="debug"></div>
   </div>
 
+  <!-- Flatpickr JS -->
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
   <script>
     // Fixed constants
     const productType = 'TKT';
@@ -129,6 +134,15 @@
     const params = new URLSearchParams(window.location.search);
     const productID = params.get('productID') || prompt('Enter productID, e.g.: ?productID=498');
     const destinationID = params.get('destinationID') || prompt('Enter destinationID, e.g.: ?destinationID=108913');
+
+    // Initialize Flatpickr for a single date
+    flatpickr('#datePicker', {
+      dateFormat: 'Y-m-d',
+      altInput: true,
+      altFormat: 'F j, Y',
+      locale: 'en',
+      defaultDate: new Date(),
+    });
 
     // Generate child age selectors
     document.getElementById('children').addEventListener('change', e => {
@@ -152,16 +166,13 @@
       const dateVal = document.getElementById('datePicker').value;
       if (!dateVal) return alert('Please select a date.');
       const startDate = dateVal;
-      // End date = next day
       const dt = new Date(dateVal);
       dt.setDate(dt.getDate() + 1);
       const endDate = dt.toISOString().slice(0,10);
 
       const adults = document.getElementById('adults').value;
       const children = document.getElementById('children').value;
-      // Multiply total pax by 10
-      const totalPax = (Number(adults) + Number(children)) * 10;
-      const paxs = String(totalPax);
+      const paxs = String((Number(adults) + Number(children)) * 10);
 
       let ages = '';
       if (Number(children) > 0) {
@@ -183,9 +194,7 @@
 
       if (ages) url += `&ages=${ages}`;
 
-      // Display for debug
       document.getElementById('debugUrl').textContent = url;
-      // Redirect after short delay
       setTimeout(() => window.location.href = url, 500);
     });
   </script>
