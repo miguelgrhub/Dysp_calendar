@@ -103,15 +103,16 @@
   <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
   <script>
     // — CONSTANTES FIJAS —
-    const productType   = 'TKT';
-    const destinationID = '108913';
-    const prov          = 'SGN';
-    const accion        = 'searchservices';
+    const productType = 'TKT';
+    const prov        = 'SGN';
+    const accion      = 'searchservices';
 
-    // Lee productID desde la query string: ?productID=498
-    const params    = new URLSearchParams(window.location.search);
-    const productID = params.get('productID') 
-      || prompt('Por favor indica el productID en la URL, ej: ?productID=498');
+    // Lee productID y destinationID desde la query string
+    const params        = new URLSearchParams(window.location.search);
+    const productID     = params.get('productID') 
+                          || prompt('Indica el productID, ej: ?productID=498');
+    const destinationID = params.get('destinationID')
+                          || prompt('Indica el destinationID, ej: ?destinationID=108913');
 
     // Inicializa Flatpickr en modo rango
     flatpickr("#rangePicker", {
@@ -151,7 +152,7 @@
       // 2) Pax
       const adults   = document.getElementById('adults').value;
       const children = document.getElementById('children').value;
-      const paxs     = adults + children;  // ej. "10" por defecto
+      const paxs     = adults + children;  // concatena "1" + "0" => "10"
 
       // 3) Edades de niños
       let ages = '';
