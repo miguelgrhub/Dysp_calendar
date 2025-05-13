@@ -148,7 +148,7 @@
 
       // 3) Edades de los niños
       const ages = Array.from(document.querySelectorAll('.child-age'))
-        .map(s => s.value.padStart(2,'0'))
+        .map(s => s.value.padStart(0,'0'))
         .join('');  // "0505" por ejemplo
 
       // 4) Construye URL
