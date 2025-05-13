@@ -139,8 +139,10 @@
         const div = document.createElement('div');
         div.className = 'field';
         div.innerHTML = `
-          <label for=\"age${i}\">Child ${i} Age</label>
-          <select id=\"age${i}\" class=\"child-age\">${Array.from({length:18}, (_, age) => `<option value=\"${age}\">${age}</option>`).join('')}</select>
+          <label for="age${i}">Child ${i} Age</label>
+          <select id="age${i}" class="child-age">
+            ${Array.from({length:18}, (_, age) => `<option value="${age}">${age}</option>`).join('')}
+          </select>
         `;
         container.appendChild(div);
       }
@@ -157,7 +159,9 @@
 
       const adults = document.getElementById('adults').value;
       const children = document.getElementById('children').value;
-      const paxs = String(Number(adults) + Number(children));
+      // Multiply total pax by 10
+      const totalPax = (Number(adults) + Number(children)) * 10;
+      const paxs = String(totalPax);
 
       let ages = '';
       if (Number(children) > 0) {
