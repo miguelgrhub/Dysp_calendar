@@ -12,37 +12,56 @@
       padding: 2rem;
       font-family: 'Segoe UI', Tahoma, sans-serif;
       background: #f5f5f5;
-      color: #333;
       display: flex;
       flex-direction: column;
       align-items: center;
     }
     h1 {
       color: #ff6600;
-      margin-bottom: 2rem;
+      margin-bottom: 1rem;
       font-size: 1.8rem;
+      text-align: center;
     }
     .container {
       background: #fff;
-      padding: 2rem;
+      padding: 1.5rem;
       border-radius: 8px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.1);
       width: 100%;
-      max-width: 400px;
+      max-width: 360px;
+      margin: auto;
       box-sizing: border-box;
     }
     .field {
-      margin-bottom: 1.5rem;
+      margin-bottom: 1.2rem;
       display: flex;
       flex-direction: column;
+      align-items: center;
     }
     .field label {
       font-size: 0.9rem;
-      margin-bottom: 0.5rem;
+      margin-bottom: 0.4rem;
+      text-align: center;
+      width: 100%;
+    }
+    .field input[type="text"] {
+      padding: 0.8rem;
+      font-size: 1rem;
+      border: 2px solid #ffcc99;
+      border-radius: 5px;
+      background: #fff;
+      color: #333;
+      width: 100%;
+      box-sizing: border-box;
+      transition: border-color 0.2s;
+    }
+    .field input[type="text"]:focus {
+      border-color: #ff6600;
     }
     .counter {
       display: flex;
       align-items: center;
+      justify-content: center;
       gap: 0.5rem;
     }
     .counter button {
@@ -57,30 +76,16 @@
       display: flex;
       align-items: center;
       justify-content: center;
+      transition: background 0.2s;
     }
     .counter button:disabled {
-      background: #ccc;
+      background: #ddd;
       cursor: not-allowed;
     }
     .counter span {
       min-width: 24px;
       text-align: center;
       font-size: 1rem;
-    }
-    .field input[type="text"] {
-      padding: 0.8rem;
-      font-size: 1rem;
-      border: 2px solid #ffcc99;
-      border-radius: 5px;
-      background: #fff;
-      color: #333;
-      outline: none;
-      transition: border-color 0.2s;
-      width: 100%;
-      box-sizing: border-box;
-    }
-    .field input[type="text"]:focus {
-      border-color: #ff6600;
     }
     .flatpickr-calendar {
       font-family: 'Segoe UI', sans-serif;
@@ -96,12 +101,16 @@
       color: #fff;
       cursor: pointer;
       transition: background 0.2s;
+      margin-top: 1rem;
+      display: block;
+      text-align: center;
     }
     #go:hover { background: #e65500; }
     .debug {
       margin-top: 1rem;
-      font-size: 0.8rem;
-      color: #999;
+      font-size: 0.75rem;
+      color: #bbb;
+      text-align: center;
       word-break: break-all;
     }
   </style>
@@ -116,7 +125,7 @@
     <div class="field">
       <label>Adults (18+)</label>
       <div class="counter">
-        <button id="decAdults">-</button>
+        <button id="decAdults">–</button>
         <span id="adultsCount">1</span>
         <button id="incAdults">+</button>
       </div>
@@ -124,7 +133,7 @@
     <div class="field">
       <label>Children (0–17)</label>
       <div class="counter">
-        <button id="decChildren">-</button>
+        <button id="decChildren">–</button>
         <span id="childrenCount">0</span>
         <button id="incChildren">+</button>
       </div>
@@ -143,12 +152,12 @@
     const params = new URLSearchParams(window.location.search);
     const productID = params.get('productID') || prompt('Enter productID, e.g.: ?productID=498');
     const destinationID = params.get('destinationID') || prompt('Enter destinationID, e.g.: ?destinationID=108913');
-    flatpickr('#datePicker', { dateFormat: 'Y-m-d', altInput: true, altFormat: 'F j, Y', locale: 'en', defaultDate: new Date() });
 
-    let adults = 1;
-    let children = 0;
-    let childAges = [];
+    flatpickr('#datePicker', {
+      dateFormat: 'Y-m-d', altInput: true, altFormat: 'F j, Y', locale: 'en', defaultDate: new Date()
+    });
 
+    let adults = 1, children = 0, childAges = [];
     const updateCounters = () => {
       document.getElementById('adultsCount').textContent = adults;
       document.getElementById('childrenCount').textContent = children;
@@ -156,28 +165,25 @@
       document.getElementById('decChildren').disabled = children <= 0;
     };
 
-    document.getElementById('incAdults').addEventListener('click', () => { adults = Math.min(10, adults + 1); updateCounters(); });
-    document.getElementById('decAdults').addEventListener('click', () => { adults = Math.max(1, adults - 1); updateCounters(); });
-    document.getElementById('incChildren').addEventListener('click', () => { children = Math.min(10, children + 1); setupChildAges(); updateCounters(); });
-    document.getElementById('decChildren').addEventListener('click', () => { children = Math.max(0, children - 1); setupChildAges(); updateCounters(); });
+    document.getElementById('incAdults').addEventListener('click', () => { adults = Math.min(10, adults+1); updateCounters(); });
+    document.getElementById('decAdults').addEventListener('click', () => { adults = Math.max(1, adults-1); updateCounters(); });
+    document.getElementById('incChildren').addEventListener('click', () => { children = Math.min(10, children+1); setupChildAges(); updateCounters(); });
+    document.getElementById('decChildren').addEventListener('click', () => { children = Math.max(0, children-1); setupChildAges(); updateCounters(); });
 
     function setupChildAges() {
-      const container = document.getElementById('childAgesContainer');
-      container.innerHTML = '';
-      childAges = Array(children).fill(0);
-      for (let i = 0; i < children; i++) {
-        const div = document.createElement('div');
-        div.className = 'field';
+      const container = document.getElementById('childAgesContainer'); container.innerHTML = ''; childAges = Array(children).fill(0);
+      childAges.forEach((_, i) => {
+        const div = document.createElement('div'); div.className = 'field';
         div.innerHTML = `
           <label>Child ${i+1} Age</label>
           <div class="counter">
-            <button data-index="${i}" class="decAge">-</button>
+            <button data-index="${i}" class="decAge">–</button>
             <span id="age${i}">0</span>
             <button data-index="${i}" class="incAge">+</button>
           </div>
         `;
         container.appendChild(div);
-      }
+      });
       document.querySelectorAll('.incAge').forEach(btn => btn.addEventListener('click', e => {
         const idx = +e.target.dataset.index; childAges[idx] = Math.min(17, childAges[idx]+1);
         document.getElementById(`age${idx}`).textContent = childAges[idx];
@@ -193,16 +199,11 @@
     document.getElementById('go').addEventListener('click', () => {
       const dateVal = document.getElementById('datePicker').value;
       if (!dateVal) return alert('Please select a date.');
-      const startDate = dateVal;
-      const dt = new Date(dateVal); dt.setDate(dt.getDate()+1);
+      const startDate = dateVal; const dt = new Date(dateVal); dt.setDate(dt.getDate()+1);
       const endDate = dt.toISOString().slice(0,10);
-
-      const totalPax = (adults + children) * 10;
-      let agesParam = childAges.map(a => String(a).padStart(2,'0')).join('');
-
-      let url =
-        `https://www.nexustours.com/services/details.aspx`
-        + `?productID=${productID}`
+      const totalPax = (adults+children)*10;
+      const agesParam = childAges.map(a=>String(a).padStart(2,'0')).join('');
+      let url = `https://www.nexustours.com/services/details.aspx?productID=${productID}`
         + `&paxs=${totalPax}`
         + `&productType=${productType}`
         + `&destinationID=${destinationID}`
@@ -211,7 +212,6 @@
         + `&prov=${prov}`
         + `&accion=${accion}`;
       if (agesParam) url += `&ages=${agesParam}`;
-
       document.getElementById('debugUrl').textContent = url;
       setTimeout(() => window.location.href = url, 500);
     });
