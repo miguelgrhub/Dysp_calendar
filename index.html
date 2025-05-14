@@ -40,7 +40,33 @@
       font-size: 0.9rem;
       margin-bottom: 0.5rem;
     }
-    .field select,
+    .counter {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .counter button {
+      width: 32px;
+      height: 32px;
+      border: none;
+      border-radius: 4px;
+      background: #ff6600;
+      color: #fff;
+      font-size: 1.2rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .counter button:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+    .counter span {
+      min-width: 24px;
+      text-align: center;
+      font-size: 1rem;
+    }
     .field input[type="text"] {
       padding: 0.8rem;
       font-size: 1rem;
@@ -50,8 +76,9 @@
       color: #333;
       outline: none;
       transition: border-color 0.2s;
+      width: 100%;
+      box-sizing: border-box;
     }
-    .field select:focus,
     .field input[type="text"]:focus {
       border-color: #ff6600;
     }
@@ -87,35 +114,20 @@
       <input type="text" id="datePicker" placeholder="Pick a date" readonly />
     </div>
     <div class="field">
-      <label for="adults">Adults (18+)</label>
-      <select id="adults">
-        <option value="1" selected>1</option>
-        <option value="2">2</option>
-        <option value="3">3</option>
-        <option value="4">4</option>
-        <option value="5">5</option>
-        <option value="6">6</option>
-        <option value="7">7</option>
-        <option value="8">8</option>
-        <option value="9">9</option>
-        <option value="10">10</option>
-      </select>
+      <label>Adults (18+)</label>
+      <div class="counter">
+        <button id="decAdults">-</button>
+        <span id="adultsCount">1</span>
+        <button id="incAdults">+</button>
+      </div>
     </div>
     <div class="field">
-      <label for="children">Children (0–17)</n      ></label>
-      <select id="children">
-        <option value="0" selected>0</option>
-        <option value="1">1</option>
-        <option value="2">2</option>
-        <option value="3">3</option>
-        <option value="4">4</option>
-        <option value="5">5</option>
-        <option value="6">6</option>
-        <option value="7">7</option>
-        <option value="8">8</option>
-        <option value="9">9</option>
-        <option value="10">10</option>
-      </select>
+      <label>Children (0–17)</label>
+      <div class="counter">
+        <button id="decChildren">-</button>
+        <span id="childrenCount">0</span>
+        <button id="incChildren">+</button>
+      </div>
     </div>
     <div id="childAgesContainer"></div>
     <button id="go">Done</button>
@@ -125,74 +137,80 @@
   <!-- Flatpickr JS -->
   <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
   <script>
-    // Fixed constants
     const productType = 'TKT';
     const prov = 'SGN';
     const accion = 'searchservices';
-
-    // Read query parameters
     const params = new URLSearchParams(window.location.search);
     const productID = params.get('productID') || prompt('Enter productID, e.g.: ?productID=498');
     const destinationID = params.get('destinationID') || prompt('Enter destinationID, e.g.: ?destinationID=108913');
+    flatpickr('#datePicker', { dateFormat: 'Y-m-d', altInput: true, altFormat: 'F j, Y', locale: 'en', defaultDate: new Date() });
 
-    // Initialize Flatpickr for a single date
-    flatpickr('#datePicker', {
-      dateFormat: 'Y-m-d',
-      altInput: true,
-      altFormat: 'F j, Y',
-      locale: 'en',
-      defaultDate: new Date(),
-    });
+    let adults = 1;
+    let children = 0;
+    let childAges = [];
 
-    // Generate child age selectors
-    document.getElementById('children').addEventListener('change', e => {
-      const count = +e.target.value;
+    const updateCounters = () => {
+      document.getElementById('adultsCount').textContent = adults;
+      document.getElementById('childrenCount').textContent = children;
+      document.getElementById('decAdults').disabled = adults <= 1;
+      document.getElementById('decChildren').disabled = children <= 0;
+    };
+
+    document.getElementById('incAdults').addEventListener('click', () => { adults = Math.min(10, adults + 1); updateCounters(); });
+    document.getElementById('decAdults').addEventListener('click', () => { adults = Math.max(1, adults - 1); updateCounters(); });
+    document.getElementById('incChildren').addEventListener('click', () => { children = Math.min(10, children + 1); setupChildAges(); updateCounters(); });
+    document.getElementById('decChildren').addEventListener('click', () => { children = Math.max(0, children - 1); setupChildAges(); updateCounters(); });
+
+    function setupChildAges() {
       const container = document.getElementById('childAgesContainer');
       container.innerHTML = '';
-      for (let i = 1; i <= count; i++) {
+      childAges = Array(children).fill(0);
+      for (let i = 0; i < children; i++) {
         const div = document.createElement('div');
         div.className = 'field';
         div.innerHTML = `
-          <label for="age${i}">Child ${i} Age</label>
-          <select id="age${i}" class="child-age">
-            ${Array.from({length:18}, (_, age) => `<option value="${age}">${age}</option>`).join('')}
-          </select>
+          <label>Child ${i+1} Age</label>
+          <div class="counter">
+            <button data-index="${i}" class="decAge">-</button>
+            <span id="age${i}">0</span>
+            <button data-index="${i}" class="incAge">+</button>
+          </div>
         `;
         container.appendChild(div);
       }
-    });
+      document.querySelectorAll('.incAge').forEach(btn => btn.addEventListener('click', e => {
+        const idx = +e.target.dataset.index; childAges[idx] = Math.min(17, childAges[idx]+1);
+        document.getElementById(`age${idx}`).textContent = childAges[idx];
+      }));
+      document.querySelectorAll('.decAge').forEach(btn => btn.addEventListener('click', e => {
+        const idx = +e.target.dataset.index; childAges[idx] = Math.max(0, childAges[idx]-1);
+        document.getElementById(`age${idx}`).textContent = childAges[idx];
+      }));
+    }
+
+    updateCounters();
 
     document.getElementById('go').addEventListener('click', () => {
       const dateVal = document.getElementById('datePicker').value;
       if (!dateVal) return alert('Please select a date.');
       const startDate = dateVal;
-      const dt = new Date(dateVal);
-      dt.setDate(dt.getDate() + 1);
+      const dt = new Date(dateVal); dt.setDate(dt.getDate()+1);
       const endDate = dt.toISOString().slice(0,10);
 
-      const adults = document.getElementById('adults').value;
-      const children = document.getElementById('children').value;
-      const paxs = String((Number(adults) + Number(children)) * 10);
-
-      let ages = '';
-      if (Number(children) > 0) {
-        ages = Array.from(document.querySelectorAll('.child-age'))
-          .map(s => s.value.padStart(2, '0'))
-          .join('');
-      }
+      const totalPax = (adults + children) * 10;
+      let agesParam = childAges.map(a => String(a).padStart(2,'0')).join('');
 
       let url =
         `https://www.nexustours.com/services/details.aspx`
         + `?productID=${productID}`
-        + `&paxs=${paxs}`
+        + `&paxs=${totalPax}`
         + `&productType=${productType}`
         + `&destinationID=${destinationID}`
         + `&startdate=${startDate}`
         + `&enddate=${endDate}`
         + `&prov=${prov}`
         + `&accion=${accion}`;
-
-      if (ages) url += `&ages=${ages}`;
+      if (agesParam) url += `&ages=${agesParam}`;
 
       document.getElementById('debugUrl').textContent = url;
       setTimeout(() => window.location.href = url, 500);
