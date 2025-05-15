@@ -29,7 +29,6 @@
       box-shadow: 0 4px 12px rgba(0,0,0,0.1);
       width: 100%;
       max-width: 360px;
-      margin: auto;
       box-sizing: border-box;
     }
     .field {
@@ -152,10 +151,16 @@
     const params = new URLSearchParams(window.location.search);
     const productID = params.get('productID') || prompt('Enter productID, e.g.: ?productID=498');
     const destinationID = params.get('destinationID') || prompt('Enter destinationID, e.g.: ?destinationID=108913');
+    const utm_source   = params.get('utm_source') || '';
+    const utm_medium   = params.get('utm_medium') || '';
+    const utm_campaign = params.get('utm_campaign') || '';
 
     flatpickr('#datePicker', {
       dateFormat: 'Y-m-d', altInput: true, altFormat: 'F j, Y', locale: 'en', defaultDate: new Date()
     });
+
+    // encode 1-9 as '1'-'9', 10 as 'A'
+    const encodeCount = n => n === 10 ? 'A' : String(n);
 
     let adults = 1, children = 0, childAges = [];
     const updateCounters = () => {
@@ -201,17 +206,23 @@
       if (!dateVal) return alert('Please select a date.');
       const startDate = dateVal; const dt = new Date(dateVal); dt.setDate(dt.getDate()+1);
       const endDate = dt.toISOString().slice(0,10);
-      const totalPax = (adults+children)*10;
+
+      const paxs = encodeCount(adults) + encodeCount(children);
       const agesParam = childAges.map(a=>String(a).padStart(2,'0')).join('');
-      let url = `https://www.nexustours.com/services/details.aspx?productID=${productID}`
-        + `&paxs=${totalPax}`
-        + `&productType=${productType}`
-        + `&destinationID=${destinationID}`
-        + `&startdate=${startDate}`
-        + `&enddate=${endDate}`
-        + `&prov=${prov}`
-        + `&accion=${accion}`;
+      let url = `https://www.nexustours.com/services/details.aspx?` +
+        `productID=${productID}` +
+        `&paxs=${paxs}` +
+        `&productType=${productType}` +
+        `&destinationID=${destinationID}` +
+        `&startdate=${startDate}` +
+        `&enddate=${endDate}` +
+        `&prov=${prov}` +
+        `&accion=${accion}`;
       if (agesParam) url += `&ages=${agesParam}`;
+      if (utm_source)   url += `&utm_source=${encodeURIComponent(utm_source)}`;
+      if (utm_medium)   url += `&utm_medium=${encodeURIComponent(utm_medium)}`;
+      if (utm_campaign) url += `&utm_campaign=${encodeURIComponent(utm_campaign)}`;
+
       document.getElementById('debugUrl').textContent = url;
       setTimeout(() => window.location.href = url, 500);
     });
